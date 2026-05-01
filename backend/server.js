@@ -31,9 +31,30 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.set('io', io);
 
 // DB Connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/mern-lms')
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log('MongoDB connection error:', err));
+const startServer = async () => {
+  try {
+    // ❌ fallback हटाया गया (important)
+    if (!process.env.MONGO_URI) {
+      throw new Error('MONGO_URI is missing in environment variables ❌');
+    }
+
+    await mongoose.connect(process.env.MONGO_URI);
+
+    console.log('MongoDB Connected ✅');
+
+    const PORT = process.env.PORT || 5000;
+
+    server.listen(PORT, () => {
+      console.log(`Server running on port ${PORT} 🚀`);
+    });
+
+  } catch (error) {
+    console.error('Startup Error ❌:', error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
